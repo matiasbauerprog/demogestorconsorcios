@@ -1,0 +1,51 @@
+name: mirror-demo
+
+# Espeja el estado ACTUAL del repo al repositorio publico del demo como un
+# unico commit huerfano. Nunca espeja el historial: hay commits viejos con
+# consorcio.db.corrupta (base SQLite con hashes de password).
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Publicar snapshot
+        env:
+          MIRROR_TOKEN: ${{ secrets.MIRROR_TOKEN || secrets.GH_PAT }}
+          MIRROR_REPO: ${{ vars.MIRROR_REPO || secrets.MIRROR_REPO }}
+        run: |
+          if [ -z "$MIRROR_TOKEN" ] || [ -z "$MIRROR_REPO" ]; then
+            echo "=== AVISO: Faltan datos para la sincronizacion de la demo ==="
+            [ -z "$MIRROR_TOKEN" ] && echo "  -> Falta el Secret: MIRROR_TOKEN"
+            [ -z "$MIRROR_REPO" ] && echo "  -> Falta la Variable/Secret: MIRROR_REPO (ej: usuario/repo-demo-publico)"
+            echo "Omitiendo el envio del snapshot hasta configurar estos valores en GitHub."
+            exit 0
+          fi
+
+          # Cinturon y tiradores: si el snapshot incluye una base, abortar.
+          # Cubre todo lo que el .gitignore ya declara sensible (consorcio.db,
+          # demo.db, *.db.bak, *.sqlite, *.sqlite3, *.corrupta) mas .sql/.dump/
+          # .backup por si en el futuro aparece tooling de volcado.
+          if git ls-files | grep -iE '\.(db(\.bak)?|sqlite3?|corrupta|sql|dump|backup)$'; then
+            echo "ERROR: el snapshot incluye archivos de base de datos"
+            exit 1
+          fi
+
+          rm -rf .git
+          git init -q
+          git config user.name "mirror-bot"
+          git config user.email "mirror-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "snapshot: $GITHUB_SHA"
+          git branch -M master
+          git push --force \
+            "https://${MIRROR_TOKEN}@github.com/${MIRROR_REPO}.git" master

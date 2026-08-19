@@ -1,0 +1,404 @@
+# ---------------------------------------------------------------------------
+# GET /departamentos
+# ---------------------------------------------------------------------------
+
+
+def test_listar_departamentos_sin_token_devuelve_401(client):
+    r = client.get("/departamentos")
+    assert r.status_code == 401
+
+
+def test_listar_departamentos_como_departamento_devuelve_403(client, headers_depto_a):
+    r = client.get("/departamentos", headers=headers_depto_a)
+    assert r.status_code == 403
+
+
+def test_listar_departamentos_como_representante_devuelve_403(client, headers_representante):
+    r = client.get("/departamentos", headers=headers_representante)
+    assert r.status_code == 403
+
+
+def test_listar_departamentos_como_admin_devuelve_seed(client, headers_admin):
+    r = client.get("/departamentos", headers=headers_admin)
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data) == 2
+    codigos = {d["codigo"] for d in data}
+    assert codigos == {"UF-1A", "UF-2B"}
+
+
+# ---------------------------------------------------------------------------
+# POST /departamentos
+# ---------------------------------------------------------------------------
+
+
+_DEPTO_NUEVO = {"codigo": "UF-3C", "descripcion": "Piso 3, Unidad C"}
+
+
+def test_crear_depto_sin_token_devuelve_401(client):
+    r = client.post("/departamentos", json=_DEPTO_NUEVO)
+    assert r.status_code == 401
+
+
+def test_crear_depto_como_departamento_devuelve_403(client, headers_depto_a):
+    r = client.post("/departamentos", json=_DEPTO_NUEVO, headers=headers_depto_a)
+    assert r.status_code == 403
+
+
+def test_crear_depto_como_representante_devuelve_403(client, headers_representante):
+    r = client.post("/departamentos", json=_DEPTO_NUEVO, headers=headers_representante)
+    assert r.status_code == 403
+
+
+def test_crear_depto_como_admin_devuelve_201(client, headers_admin):
+    r = client.post("/departamentos", json=_DEPTO_NUEVO, headers=headers_admin)
+    assert r.status_code == 201
+    body = r.json()
+    assert body["codigo"] == "UF-3C"
+    assert body["descripcion"] == "Piso 3, Unidad C"
+    assert isinstance(body["id"], int)
+
+
+def test_crear_depto_aparece_en_listado(client, headers_admin):
+    client.post("/departamentos", json=_DEPTO_NUEVO, headers=headers_admin)
+    r = client.get("/departamentos", headers=headers_admin)
+    codigos = {d["codigo"] for d in r.json()}
+    assert "UF-3C" in codigos
+
+
+def test_crear_depto_codigo_duplicado_devuelve_409(client, headers_admin):
+    # UF-1A ya existe en el seed.
+    r = client.post(
+        "/departamentos",
+        json={"codigo": "UF-1A", "descripcion": "Otro"},
+        headers=headers_admin,
+    )
+    assert r.status_code == 409
+
+
+def test_crear_depto_sin_descripcion_es_201(client, headers_admin):
+    r = client.post("/departamentos", json={"codigo": "UF-9Z"}, headers=headers_admin)
+    assert r.status_code == 201
+    assert r.json()["descripcion"] is None
+
+
+def test_crear_depto_sin_codigo_devuelve_400(client, headers_admin):
+    r = client.post(
+        "/departamentos",
+        json={"descripcion": "Sin código"},
+        headers=headers_admin,
+    )
+    assert r.status_code == 400
+
+
+def test_crear_depto_codigo_vacio_devuelve_400(client, headers_admin):
+    r = client.post(
+        "/departamentos",
+        json={"codigo": "", "descripcion": "x"},
+        headers=headers_admin,
+    )
+    assert r.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# PATCH /departamentos/{id}
+# ---------------------------------------------------------------------------
+
+
+def test_patch_depto_sin_token_devuelve_401(client):
+    r = client.patch("/departamentos/1", json={"descripcion": "x"})
+    assert r.status_code == 401
+
+
+def test_patch_depto_como_departamento_devuelve_403(client, headers_depto_a):
+    r = client.patch("/departamentos/1", json={"descripcion": "x"}, headers=headers_depto_a)
+    assert r.status_code == 403
+
+
+def test_patch_depto_inexistente_devuelve_404(client, headers_admin):
+    r = client.patch(
+        "/departamentos/9999",
+        json={"descripcion": "x"},
+        headers=headers_admin,
+    )
+    assert r.status_code == 404
+
+
+def test_patch_depto_actualiza_descripcion(client, headers_admin):
+    r = client.patch(
+        "/departamentos/1",
+        json={"descripcion": "Depto A — renovado"},
+        headers=headers_admin,
+    )
+    assert r.status_code == 200
+    assert r.json()["descripcion"] == "Depto A — renovado"
+    # codigo no editable: queda igual.
+    assert r.json()["codigo"] == "UF-1A"
+
+
+def test_patch_depto_codigo_en_body_es_ignorado(client, headers_admin):
+    # El schema DepartamentoActualizar no define `codigo` — Pydantic ignora campos
+    # desconocidos por defecto, así que el patch no debe modificarlo.
+    r = client.patch(
+        "/departamentos/1",
+        json={"codigo": "UF-HACK", "descripcion": "x"},
+        headers=headers_admin,
+    )
+    assert r.status_code == 200
+    assert r.json()["codigo"] == "UF-1A"
+
+
+def test_patch_depto_body_vacio_es_noop(client, headers_admin):
+    r = client.patch("/departamentos/1", json={}, headers=headers_admin)
+    assert r.status_code == 200
+    assert r.json()["codigo"] == "UF-1A"
+
+
+def test_crear_depto_y_usar_para_expensa_y_usuario(client, headers_admin):
+    # Integración: el departamento recién creado debe poder usarse en endpoints
+    # que validan FK contra `departamentos` (ej. crear expensa).
+    creado = client.post(
+        "/departamentos",
+        json={"codigo": "UF-4D", "descripcion": "Test integración"},
+        headers=headers_admin,
+    ).json()
+    r = client.post(
+        "/expensas",
+        json={
+            "departamento_id": creado["id"],
+            "periodo": "2026-07",
+            "monto_primer_vencimiento": 50000.0,
+            "fecha_primer_vencimiento": "2026-08-10",
+            "monto_segundo_vencimiento": 53500.0,
+            "fecha_segundo_vencimiento": "2026-08-20",
+        },
+        headers=headers_admin,
+    )
+    assert r.status_code == 201
+    assert r.json()["departamento_id"] == creado["id"]
+
+
+# ---------------------------------------------------------------------------
+# GET /departamentos/{id}/coeficientes
+# ---------------------------------------------------------------------------
+
+
+def test_get_coeficientes_sin_token_devuelve_401(client):
+    r = client.get("/departamentos/1/coeficientes")
+    assert r.status_code == 401
+
+
+def test_get_coeficientes_como_depto_devuelve_403(client, headers_depto_a):
+    r = client.get("/departamentos/1/coeficientes", headers=headers_depto_a)
+    assert r.status_code == 403
+
+
+def test_get_coeficientes_depto_inexistente_devuelve_404(client, headers_admin):
+    r = client.get("/departamentos/9999/coeficientes", headers=headers_admin)
+    assert r.status_code == 404
+
+
+def test_get_coeficientes_sin_filas_devuelve_lista_vacia(client, headers_admin):
+    r = client.get("/departamentos/1/coeficientes", headers=headers_admin)
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+# ---------------------------------------------------------------------------
+# PUT /departamentos/{id}/coeficientes (replace-all)
+# ---------------------------------------------------------------------------
+
+
+def test_put_coeficientes_sin_token_devuelve_401(client):
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 500, "porcentaje": 50.0}]},
+    )
+    assert r.status_code == 401
+
+
+def test_put_coeficientes_como_depto_devuelve_403(client, headers_depto_a):
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": []},
+        headers=headers_depto_a,
+    )
+    assert r.status_code == 403
+
+
+def test_put_coeficientes_depto_inexistente_devuelve_404(client, headers_admin):
+    r = client.put(
+        "/departamentos/9999/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 500, "porcentaje": 25.0}]},
+        headers=headers_admin,
+    )
+    assert r.status_code == 404
+
+
+def test_put_coeficientes_clase_inexistente_devuelve_404(client, headers_admin):
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 9999, "porcentaje": 25.0}]},
+        headers=headers_admin,
+    )
+    assert r.status_code == 404
+
+
+def test_put_coeficientes_porcentaje_fuera_de_rango_devuelve_400(client, headers_admin):
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 500, "porcentaje": 150.0}]},
+        headers=headers_admin,
+    )
+    assert r.status_code == 400
+
+
+def test_put_coeficientes_clase_duplicada_devuelve_400(client, headers_admin):
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={
+            "coeficientes": [
+                {"clase_prorrateo_id": 500, "porcentaje": 25.0},
+                {"clase_prorrateo_id": 500, "porcentaje": 75.0},
+            ]
+        },
+        headers=headers_admin,
+    )
+    assert r.status_code == 400
+
+
+def test_put_coeficientes_crea_y_get_devuelve_filas(client, headers_admin):
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 500, "porcentaje": 33.3333}]},
+        headers=headers_admin,
+    )
+    assert r.status_code == 200
+
+    r2 = client.get("/departamentos/1/coeficientes", headers=headers_admin)
+    data = r2.json()
+    assert len(data) == 1
+    assert data[0]["clase_prorrateo_id"] == 500
+    assert data[0]["codigo"] == "A"
+    assert data[0]["porcentaje"] == 33.3333
+
+
+def test_put_coeficientes_replace_borra_los_previos(client, headers_admin):
+    # Setup: poner uno.
+    client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 500, "porcentaje": 50.0}]},
+        headers=headers_admin,
+    )
+    # Crear otra clase.
+    nueva = client.post(
+        "/clases-prorrateo",
+        json={"codigo": "BB", "nombre": "Otra"},
+        headers=headers_admin,
+    ).json()
+
+    # Reemplazar con solo la nueva.
+    client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": nueva["id"], "porcentaje": 80.0}]},
+        headers=headers_admin,
+    )
+
+    r = client.get("/departamentos/1/coeficientes", headers=headers_admin)
+    data = r.json()
+    assert len(data) == 1
+    assert data[0]["clase_prorrateo_id"] == nueva["id"]
+
+
+def test_put_coeficientes_lista_vacia_borra_todo(client, headers_admin):
+    # Setup.
+    client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": [{"clase_prorrateo_id": 500, "porcentaje": 50.0}]},
+        headers=headers_admin,
+    )
+
+    # Vaciar.
+    r = client.put(
+        "/departamentos/1/coeficientes",
+        json={"coeficientes": []},
+        headers=headers_admin,
+    )
+    assert r.status_code == 200
+
+    r2 = client.get("/departamentos/1/coeficientes", headers=headers_admin)
+    # (asserts continúan abajo)
+    assert r2.status_code == 200
+    assert r2.json() == []
+
+
+# ---------------------------------------------------------------------------
+# DELETE /departamentos/{id}
+# ---------------------------------------------------------------------------
+
+
+def test_delete_depto_sin_token_devuelve_401(client):
+    r = client.delete("/departamentos/1")
+    assert r.status_code == 401
+
+
+def test_delete_depto_como_departamento_devuelve_403(client, headers_depto_a):
+    r = client.delete("/departamentos/2", headers=headers_depto_a)
+    assert r.status_code == 403
+
+
+def test_delete_depto_como_representante_devuelve_403(client, headers_representante):
+    r = client.delete("/departamentos/1", headers=headers_representante)
+    assert r.status_code == 403
+
+
+def test_delete_depto_inexistente_devuelve_404(client, headers_admin):
+    r = client.delete("/departamentos/9999", headers=headers_admin)
+    assert r.status_code == 404
+
+
+def test_delete_depto_con_usuarios_devuelve_409(client, headers_admin):
+    # Depto A (id=1) tiene un usuario en el seed.
+    r = client.delete("/departamentos/1", headers=headers_admin)
+    assert r.status_code == 409
+    assert r.json()["detail"] == "departamento_con_actividad"
+
+
+def test_delete_depto_vacio_devuelve_204(client, headers_admin, db_session):
+    from backend.models import Departamento
+    # Creo uno vacío
+    d = Departamento(consorcio_id=1, codigo="UF-VACIO", descripcion="Vacío")
+    db_session.add(d)
+    db_session.commit()
+    depto_id = d.id
+    r = client.delete(f"/departamentos/{depto_id}", headers=headers_admin)
+    assert r.status_code == 204
+    assert db_session.get(Departamento, depto_id) is None
+
+
+def test_delete_depto_con_coeficientes_hace_cascade(client, headers_admin, db_session):
+    """Coeficientes son config del depto, no actividad: se borran en cascada."""
+    from backend.models import CoeficienteDepartamento, Departamento
+    d = Departamento(consorcio_id=1, codigo="UF-COEFS", descripcion="Con coefs")
+    db_session.add(d)
+    db_session.flush()
+    c = CoeficienteDepartamento(
+        consorcio_id=1, departamento_id=d.id, clase_prorrateo_id=500, porcentaje=10.0
+    )
+    db_session.add(c)
+    db_session.commit()
+    depto_id = d.id
+
+    r = client.delete(f"/departamentos/{depto_id}", headers=headers_admin)
+    assert r.status_code == 204
+    remaining = db_session.query(CoeficienteDepartamento).filter(
+        CoeficienteDepartamento.departamento_id == depto_id
+    ).count()
+    assert remaining == 0
+
+
+def test_delete_depto_de_otro_consorcio_devuelve_404(client, dos_consorcios):
+    r = client.delete("/departamentos/3", headers=dos_consorcios["headers_admin_c1"])
+    assert r.status_code == 404
+
+

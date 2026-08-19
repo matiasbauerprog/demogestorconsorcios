@@ -1,0 +1,50 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / Vite
+node_modules/
+frontend/dist/
+frontend/build/
+
+# Database de desarrollo (cada quien tiene la suya local)
+consorcio.db
+# Base del modo demo: la regenera backend/seed_demo.py, nunca se versiona.
+demo.db
+*.db.bak
+*.sqlite
+*.sqlite3
+*.corrupta
+
+# Archivos subidos en desarrollo y por el generador demo (backend/seed_demo.py
+# escribe un PNG por comprobante: miles de archivos, no se versionan). Los
+# .gitkeep preservan la estructura de carpetas.
+backend/uploads/*
+!backend/uploads/comprobantes/
+backend/uploads/comprobantes/*
+!backend/uploads/comprobantes/.gitkeep
+
+# Logs
+*.log
+
+# Editores / OS
+.DS_Store
+.superpowers/
+
+# Worktrees de ejecucion aislada (superpowers / SDD)
+.worktrees/
+.claude/
+

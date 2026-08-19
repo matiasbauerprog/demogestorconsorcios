@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial Interactivo - Sistema de Gestión de Consorcios</title>
+  
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos reales del sistema -->
+  <link rel="stylesheet" href="frontend/src/index.css">
+  
+  <style>
+    /* =====================================================================
+       Variables y Reset del Portal del Tutorial (No interfieren con index.css)
+       ===================================================================== */
+    body {
+      background-color: #f1ede4;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+    }
+
+    /* ---------- Header Principal del Portal ---------- */
+    .tutorial-header {
+      background: #ffffff;
+      border-bottom: 2px solid #e5e2da;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+      height: 62px;
+      flex-shrink: 0;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: var(--color-primary, #3460a8);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm, 8px);
+    }
+
+    .logo-text h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .logo-text span {
+      font-size: 0.75rem;
+      color: var(--color-text-muted, #78716c);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-demo {
+      background: var(--color-warning-bg, #fdf3d7);
+      color: var(--color-warning, #8a6d1a);
+      border: 1px solid rgba(138, 109, 26, 0.3);
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* ---------- Contenedor Principal ---------- */
+    .main-layout {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 62px);
+      overflow: hidden;
+    }
+
+    @media (max-width: 1024px) {
+      .main-layout {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+      }
+    }
+
+    /* ---------- Panel de Guía Pedagógica (Izquierda) ---------- */
+    .guide-panel {
+      width: 38%;
+      min-width: 380px;
+      background: #ffffff;
+      border-right: 2px solid #e5e2da;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1024px) {
+      .guide-panel {
+        width: 100%;
+        min-width: 0;
+        height: auto;
+      }
+    }
+
+    .guide-progress {
+      padding: 1.25rem 1.5rem 0.5rem;
+    }
+
+    .progress-bar-container {
+      background: var(--color-border, #eceae4);
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-bar-fill {
+      background: var(--color-primary, #3460a8);
+      height: 100%;
+      width: 20%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      font-size: 0.75rem;
+      color: var(--color-text-muted, #78716c);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .guide-content-wrapper {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .step-card {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .step-card.active {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-title-num {
+      color: var(--color-primary, #3460a8);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .step-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-top: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .step-description {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--color-text, #1c1917);
+    }
+
+    .concept-highlight {
+      background: var(--color-bg, #faf9f6);
+      border-left: 4px solid var(--color-primary, #3460a8);
+      padding: 1rem;
+      border-radius: 0 var(--radius-sm, 8px) var(--radius-sm, 8px) 0;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .concept-highlight h4 {
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+      color: var(--color-primary, #3460a8);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .action-instruction {
+      background: var(--color-success-bg, #e7f4ec);
+      border: 1px dashed var(--color-success, #24734c);
+      padding: 1rem;
+      border-radius: var(--radius-sm, 8px);
+      font-size: 0.9rem;
+      color: var(--color-success, #24734c);
+      font-weight: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .action-instruction strong {
+      color: #1b5336;
+    }
+
+    .guide-navigation {
+      padding: 1.5rem;
+      border-top: 1px solid var(--color-border, #eceae4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--color-bg, #faf9f6);
+    }
+
+    /* ---------- Panel del Simulador (Derecha) ---------- */
+    .simulator-panel {
+      flex: 1;
+      background: #f1ede4;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 1024px) {
+      .simulator-panel {
+        width: 100%;
+        height: 600px;
+        padding: 1rem;
+      }
+    }
+
+    /* El contenedor que simula la ventana de la App real */
+    .app-window {
+      width: 100%;
+      height: 100%;
+      max-width: 1000px;
+      max-height: 650px;
+      background: var(--color-bg, #faf9f6);
+      border-radius: var(--radius, 10px);
+      box-shadow: 0 8px 24px rgba(28, 25, 23, 0.15);
+      border: 1px solid var(--color-border-strong, #e5e2da);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* =====================================================================
+       Overrides para incrustar el Shell Real dentro de la Ventana de Simulación
+       ===================================================================== */
+    .app-window .app-shell {
+      min-height: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+    }
+
+    .app-window .app-header {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 1rem;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      min-height: 52px;
+      flex-shrink: 0;
+    }
+
+    .app-window .app-body {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+      min-height: 0;
+      height: calc(100% - 52px);
+      overflow: hidden;
+    }
+
+    .app-window .app-sidebar {
+      position: static;
+      transform: none;
+      width: 215px;
+      max-width: none;
+      height: 100%;
+      flex-shrink: 0;
+      background: var(--color-bg);
+      border-right: 1px solid var(--color-border);
+      padding: 1rem 0;
+      overflow-y: auto;
+      box-shadow: none;
+      z-index: auto;
+      display: block;
+    }
+
+    .app-window .app-content {
+      padding: 1.25rem;
+      overflow-y: auto;
+      flex: 1;
+      height: 100%;
+      background: var(--color-surface);
+    }
+
+    /* Ocultar pantallas inactivas de la simulación */
+    .sim-screen {
+      display: none;
+    }
+    .sim-screen.active {
+      display: block;
+    }
+
+    /* Mostrar/Ocultar submenús en el sidebar */
+    .app-window .sidebar-section ul {
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0.25rem 0 0.5rem;
+    }
+    .app-window .sidebar-section.abierto ul {
+      display: flex;
+    }
+
+    /* Forzar diseño desktop dentro de la simulación */
+    .app-window .app-header h1 {
+      display: none;
+    }
+    .app-window .hamburguesa,
+    .app-window .drawer-backdrop,
+    .app-window .sidebar-cabecera {
+      display: none;
+    }
+    .app-window .sidebar-logo {
+      display: block;
+      padding: 0 1.25rem 0.75rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .app-window .sidebar-link {
+      margin: 0 0.75rem;
+      cursor: pointer;
+    }
+    .app-window .sidebar-section + .sidebar-section {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .app-window .sidebar-section-titulo {
+      width: calc(100% - 1.5rem);
+      margin: 0 0.75rem;
+      padding: 0.6em 0.75em;
+    }
+
+    /* Estilo para los botones del Portal del Tutorial */
+    .tutorial-header .btn,
+    .guide-navigation .btn {
+      font-family: "Inter", sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.65rem 1.2rem;
+      border-radius: var(--radius-sm, 8px);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      min-height: 40px;
+    }
+    
+    .tutorial-header .btn-secondary,
+    .guide-navigation .btn-secondary {
+      background: #ffffff;
+      color: var(--color-text);
+      border: 1px solid var(--color-border-strong);
+    }
+    
+    .tutorial-header .btn-secondary:hover,
+    .guide-navigation .btn-secondary:hover {
+      background: var(--color-bg);
+    }
+
+    .tutorial-header .btn-primary,
+    .guide-navigation .btn-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+      border: 1px solid transparent;
+    }
+    
+    .tutorial-header .btn-primary:hover,
+    .guide-navigation .btn-primary:hover {
+      background: var(--color-primary-hover);
+    }
+
+    /* Animación del flujo de deudas */
+    .fifo-debt-row {
+      transition: all 0.4s ease;
+    }
+    .fifo-debt-row.applying-payment {
+      background-color: var(--color-warning-bg);
+      border-left: 3px solid var(--color-warning);
+    }
+    .fifo-debt-row.paid-now {
+      background-color: var(--color-success-bg);
+      border-left: 3px solid var(--color-success);
+    }
+    .fifo-waterfall-step {
+      border-left: 3px solid var(--color-primary);
+      background: var(--color-primary-soft);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.72rem;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 0.4rem;
+      opacity: 0;
+      animation: fadeIn 0.4s forwards;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER PRINCIPAL DEL PORTAL -->
+  <header class="tutorial-header">
+    <div class="logo-container">
+      <div class="logo-badge">GC</div>
+      <div class="logo-text">
+        <h1>Gestor Consorcios</h1>
+        <span>Tutorial Interactivo de Evaluación</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <span class="badge-demo">Demo Autónoma</span>
+      <a href="index.html" class="btn btn-secondary" style="min-height:36px; padding:0 1rem; font-size:0.8rem;">
+        Volver a la Landing
+      </a>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="main-layout">
+    
+    <!-- PANEL IZQUIERDO: GUÍA PEDAGÓGICA -->
+    <section class="guide-panel">
+      
+      <!-- Progreso del Tutorial -->
+      <div class="guide-progress">
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-text" id="progressText">Paso 0 de 5 · Introducción</div>
+      </div>
+      
+      <!-- Contenidos explicativos de los pasos -->
+      <div class="guide-content-wrapper">
+        
+        <!-- INTRODUCCIÓN -->
+        <div class="step-card active" id="step-0">
+          <span class="step-title-num">Bienvenido</span>
+          <h2 class="step-title">Evaluación del Sistema de Consorcios</h2>
+          <p class="step-description">
+            Esta demostración guiada te permitirá evaluar las características clave del software tal como las verá el consorcio. A la derecha, tienes una simulación interactiva <strong>100% fiel al diseño de la aplicación real</strong>.
+          </p>
+          <p class="step-description">
+            Aprenderás cómo el sistema asiste a la administración en los procesos cotidianos estructurados en 5 simples pasos explicativos.
+          </p>
+          <div class="concept-highlight">
+            <h4>💡 Cómo operar la demo</h4>
+            Lee la explicación de este panel izquierdo y luego realiza la <strong>prueba interactiva</strong> indicada en el recuadro verde de abajo en la pantalla del software simulado a la derecha.
+          </div>
+          <div class="action-instruction">
+            <strong>Paso 0:</strong>
+            <span>Haz clic en el botón <strong>"Siguiente"</strong> de abajo para comenzar con el primer paso: Padrón de copropietarios.</span>
+          </div>
+        </div>
+
+        <!-- PASO 1: PADRÓN DE COPROPIETARIOS -->
+        <div class="step-card" id="step-1">
+          <span class="step-title-num">Paso 1 de 5</span>
+          <h2 class="step-title">Usuarios y Coeficientes</h2>
+          <p class="step-description">
+            El primer paso en la configuración de un consorcio es registrar las unidades funcionales (UF) y sus <strong>coeficientes de prorrateo</strong>. El coeficiente representa el porcentaje del gasto total del edificio que le corresponde pagar a esa unidad (por metros cuadrados u otros criterios).
+          </p>
+          <p class="step-description">
+            El sistema exige que la suma total de coeficientes sea exactamente <strong>100.00%</strong> para garantizar que no se liquiden expensas de más ni de menos.
+          </p>
+          <div class="action-instruction">
+            <strong>Prueba interactiva:</strong>
+            <span>Modifica los coeficientes en la tabla de la derecha. Intenta subir el valor de la <strong>UF 1A</strong> a <strong>20.00%</strong>. Verás que la suma total cambia y el indicador advierte en color rojo si la suma no da 100%. Vuelve a dejar la suma en 100% para continuar.</span>
+          </div>
+        </div>
+
+        <!-- PASO 2: CARGA DE EGRESOS (GASTOS) -->
+        <div class="step-card" id="step-2">
+          <span class="step-title-num">Paso 2 de 5</span>
+          <h2 class="step-title">Gastos del Consorcio</h2>
+          <p class="step-description">
+            Durante el mes, la administración registra los gastos incurridos por el edificio Libertad (abonos de ascensores, facturas de servicios públicos, sueldos de encargados, reparaciones comunes, etc.).
+          </p>
+          <p class="step-description">
+            Cada gasto se categoriza en los rubros contables exigidos por la <strong>Ley 941 (CABA)</strong> y se asocia a una clase de prorrateo (ej. Clase A para gastos comunes, Clase B para extraordinarios).
+          </p>
+          <div class="action-instruction">
+            <strong>Prueba interactiva:</strong>
+            <span>Usa el formulario <strong>"Nuevo Gasto"</strong> a la derecha para cargar un egreso ficticio. Por ejemplo, ingresa: <em>"Reparación Cañería 2A"</em>, un monto de <em>20000</em>, selecciona el rubro <em>"Mantenimiento partes comunes"</em> y haz clic en <strong>"Agregar Gasto"</strong>. Observa cómo se añade a la lista y aumenta el total a liquidar.</span>
+          </div>
+        </div>
+
+        <!-- PASO 3: CIERRE DE PERÍODO -->
+        <div class="step-card" id="step-3">
+          <span class="step-title-num">Paso 3 de 5</span>
+          <h2 class="step-title">Liquidación Mensual de Expensas</h2>
+          <p class="step-description">
+            Al finalizar el mes, la administración realiza el **cierre del período**. El sistema toma el total de gastos acumulados y los prorratea entre las unidades funcionales aplicando automáticamente los coeficientes que definimos en el Paso 1.
+          </p>
+          <p class="step-description">
+            El sistema generará las expensas individuales listas para ser descargadas y enviadas de forma masiva a los copropietarios por correo electrónico.
+          </p>
+          <div class="action-instruction">
+            <strong>Prueba interactiva:</strong>
+            <span>Haz clic en el botón <strong>"Generar Liquidación Mensual"</strong> en la tarjeta de cierre. El sistema procesará el cálculo y desplegará la vista previa de las boletas calculadas para cada copropietario del edificio Libertad.</span>
+          </div>
+        </div>
+
+        <!-- PASO 4: CUENTA CORRIENTE (IMPUTACIÓN CRONOLÓGICA) -->
+        <div class="step-card" id="step-4">
+          <span class="step-title-num">Paso 4 de 5</span>
+          <h2 class="step-title">Cuentas Corrientes e Imputación por Antigüedad</h2>
+          <p class="step-description">
+            Esta es la <strong>pieza contable más avanzada</strong> del sistema. En lugar de vincular manualmente cada cobro a una boleta específica (lo que genera desajustes si el inquilino paga de más, de menos, o realiza pagos parciales), el sistema procesa el saldo mediante la <strong>imputación automática por antigüedad</strong> (las deudas más viejas se cancelan primero).
+          </p>
+          <div class="concept-highlight">
+            <h4>¿Cómo funciona la imputación por antigüedad?</h4>
+            Los pagos ingresados se destinan a saldar la deuda **más antigua** que posea el departamento antes de imputarse a los meses actuales. Esto garantiza un estado de cuenta libre de errores y de desincronización contable.
+          </div>
+          <p class="step-description">
+            En el simulador verás la cuenta corriente de la <strong>UF 1A</strong>, que arrastra 3 expensas vencidas sin pagar: Enero ($ 15.000,00), Febrero ($ 20.000,00) y Marzo ($ 18.000,00).
+          </p>
+          <div class="action-instruction">
+            <strong>Prueba interactiva:</strong>
+            <span>Elige un monto de pago a simular (por ejemplo, <strong>$ 30.000,00</strong>) y haz clic en <strong>"Procesar Pago por Antigüedad"</strong>. Mira cómo la barra de flujo interactiva distribuye el dinero, liquidando Enero al 100%, cubriendo Febrero parcialmente en un 75%, y dejando Marzo intacto.</span>
+          </div>
+        </div>
+
+        <!-- PASO 5: AMENITIES -->
+        <div class="step-card" id="step-5">
+          <span class="step-title-num">Paso 5 de 5</span>
+          <h2 class="step-title">Amenities y Comunicación</h2>
+          <p class="step-description">
+            Además de la contabilidad, el sistema ofrece un **portal de copropietarios** donde los vecinos pueden consultar las últimas novedades comunicadas por la administración y reservar espacios comunes (SUM, parrillas, cocheras) en tiempo real.
+          </p>
+          <p class="step-description">
+            El sistema valida la disponibilidad horaria del espacio y previene colisiones de reservas automáticamente.
+          </p>
+          <div class="action-instruction">
+            <strong>Prueba interactiva:</strong>
+            <span>Haz clic en el botón <strong>"Reservar SUM (UF 2A) para Sábado 11/07 (19:00 a 00:00)"</strong>. Verás cómo la reserva se registra inmediatamente en la lista de aprobaciones del edificio con estado aprobado.</span>
+          </div>
+        </div>
+
+      </div>
+      
+      <!-- Navegación del Portal de Guía -->
+      <footer class="guide-navigation">
+        <button class="btn btn-secondary" id="btnPrev" onclick="navigateStep(-1)" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Anterior
+        </button>
+        <button class="btn btn-primary" id="btnNext" onclick="navigateStep(1)">
+          Siguiente
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </footer>
+
+    </section>
+
+    
+    <!-- PANEL DERECHO: SIMULADOR ACTIVO DE LA APP (Shell Real) -->
+    <section class="simulator-panel">
+      
+      <!-- Contenedor del Simulador -->
+      <div class="app-window" id="appWindow">
+        <div class="app-shell">
+          
+          <!-- Header de la Aplicación Real -->
+          <header class="app-header">
+            <div class="app-header-titulo">
+              <button type="button" class="hamburguesa">☰</button>
+              <h1>Gestión de Consorcios</h1>
+              <!-- Selector de Consorcio Fiel -->
+              <div style="display:flex; align-items:center; gap:0.5rem; background: var(--color-surface); border:1px solid var(--color-border); padding: 0.35rem 0.75rem; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600;">
+                Consorcio Libertad
+              </div>
+              <!-- Campanita Fiel -->
+              <div class="campanita" style="margin-left:0.5rem;">
+                <button type="button" class="campanita-boton" style="padding:0; min-height:unset; min-width:unset; background:transparent; border:none; color:var(--color-text);">🔔</button>
+              </div>
+            </div>
+            
+            <nav class="app-user">
+              <span>admin@gestionconsorcios.com <strong>(administracion)</strong></span>
+              <button type="button" style="min-height:unset; padding:0.25rem 0.5rem; font-size:0.75rem; border-radius:4px; border:1px solid var(--color-border-strong); background:transparent; color:var(--color-text);">Cerrar sesión</button>
+            </nav>
+          </header>
+          
+          <!-- Body de la Aplicación Real -->
+          <div class="app-body">
+            
+            <!-- Sidebar Accordion Fiel -->
+            <aside class="app-sidebar">
+              <div class="sidebar-logo">Gestor Consorcios</div>
+              <nav>
+                <div class="sidebar-section abierto" id="sec-comunicacion">
+                  <button class="sidebar-section-titulo activo" onclick="toggleSidebarSection(this)" aria-expanded="true">
+                    <span>Comunicación</span>
+                    <span class="sidebar-chevron">▶</span>
+                  </button>
+                  <ul>
+                    <li><a class="sidebar-link activo" id="nav-comunicados" onclick="switchSimScreen('comunicados')">Comunicados</a></li>
+                  </ul>
+                </div>
+                
+                <div class="sidebar-section" id="sec-cobranzas">
+                  <button class="sidebar-section-titulo" onclick="toggleSidebarSection(this)" aria-expanded="false">
+                    <span>Cobranzas y gastos</span>
+                    <span class="sidebar-chevron">▶</span>
+                  </button>
+                  <ul>
+                    <li><a class="sidebar-link" id="nav-gastos" onclick="switchSimScreen('gastos')">Gastos</a></li>
+                  </ul>
+                </div>
+                
+                <div class="sidebar-section" id="sec-finanzas">
+                  <button class="sidebar-section-titulo" onclick="toggleSidebarSection(this)" aria-expanded="false">
+                    <span>Finanzas</span>
+                    <span class="sidebar-chevron">▶</span>
+                  </button>
+                  <ul>
+                    <li><a class="sidebar-link" id="nav-cuenta" onclick="switchSimScreen('cuenta')">Cuentas corrientes</a></li>
+                  </ul>
+                </div>
+                
+                <div class="sidebar-section" id="sec-espacios">
+                  <button class="sidebar-section-titulo" onclick="toggleSidebarSection(this)" aria-expanded="false">
+                    <span>Espacios comunes</span>
+                    <span class="sidebar-chevron">▶</span>
+                  </button>
+                  <ul>
+                    <li><a class="sidebar-link" id="nav-reservas" onclick="switchSimScreen('reservas')">Reservas</a></li>
+                  </ul>
+                </div>
+                
+                <div class="sidebar-section" id="sec-configuracion">
+                  <button class="sidebar-section-titulo" onclick="toggleSidebarSection(this)" aria-expanded="false">
+                    <span>Configuración</span>
+                    <span class="sidebar-chevron">▶</span>
+                  </button>
+                  <ul>
+                    <li><a class="sidebar-link" id="nav-cierre" onclick="switchSimScreen('cierre')">Cierre de período</a></li>
+                    <li><a class="sidebar-link" id="nav-departamentos" onclick="switchSimScreen('departamentos')">Usuarios y coeficientes</a></li>
+                  </ul>
+                </div>
+              </nav>
+            </aside>
+            
+            <!-- Zona de Trabajo Principal (Fiel a la app real) -->
+            <main class="app-content">
+              
+              <!-- PANTALLA: COMUNICADOS (INTRODUCCIÓN) -->
+              <div class="sim-screen active" id="screen-comunicados">
+                <main class="pantalla">
+                  <header class="cabecera-pantalla">
+                    <h2>Comunicación</h2>
+                  </header>
+                  
+                  <div class="tabs-panel" style="display:flex; gap:0.5rem; border-bottom:1px solid var(--color-border); padding-bottom:0.5rem; margin-bottom:1rem;">
+                    <button type="button" class="tab-btn active" style="background:var(--color-primary-soft); color:var(--color-primary); min-height:unset; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:600; border-radius:4px; border:none;">Comunicados</button>
+                    <button type="button" class="tab-btn" style="background:transparent; color:var(--color-text-muted); min-height:unset; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:500; border-radius:4px; border:none;">Reglamento</button>
+                  </div>
+
+                  <div class="tarjeta-acciones" style="margin-bottom: 1rem;">
+                    <button type="button" style="min-height: 36px; padding: 0.35rem 0.85rem; font-size:0.8rem; border-radius: var(--radius-sm);">
+                      + Nuevo comunicado
+                    </button>
+                  </div>
+
+                  <ul class="lista-comunicados" style="list-style:none; display:flex; flex-direction:column; gap:1rem; padding:0;">
+                    <li>
+                      <article class="tarjeta">
+                        <h3>Próxima Asamblea Ordinaria</h3>
+                        <p class="meta">12/07/2026 · Administración</p>
+                        <p style="font-size:0.88rem; line-height: 1.45;">
+                          Estimados copropietarios, se convoca a la asamblea general ordinaria a realizarse el día 15 de Julio a las 19:00 hs en el SUM del edificio Libertad. Se tratará el nuevo presupuesto.
+                        </p>
+                      </article>
+                    </li>
+                    <li>
+                      <article class="tarjeta">
+                        <h3>Limpieza de Tanques de Agua</h3>
+                        <p class="meta">09/07/2026 · Administración</p>
+                        <p style="font-size:0.88rem; line-height: 1.45;">
+                          Se informa que el día Miércoles 8 entre las 08:00 y las 13:00 hs se realizará la limpieza e inspección semestral de los tanques de agua. Habrá un corte temporal del suministro.
+                        </p>
+                      </article>
+                    </li>
+                  </ul>
+                </main>
+              </div>
+
+              <!-- PANTALLA: DEPARTAMENTOS / PADRÓN (PASO 1) -->
+              <div class="sim-screen" id="screen-departamentos">
+                <main class="pantalla">
+                  <h2 style="margin-bottom: 0.25rem;">Usuarios y coeficientes</h2>
+                  
+                  <div class="tabs-panel" style="display:flex; gap:0.5rem; border-bottom:1px solid var(--color-border); padding-bottom:0.5rem; margin-bottom:1rem;">
+                    <button type="button" class="tab-btn active" style="background:var(--color-primary-soft); color:var(--color-primary); min-height:unset; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:600; border-radius:4px; border:none;">Departamentos y usuarios</button>
+                    <button type="button" class="tab-btn" style="background:transparent; color:var(--color-text-muted); min-height:unset; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:500; border-radius:4px; border:none;">Coeficientes</button>
+                  </div>
+
+                  <section>
+                    <header class="padron-cabecera" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                      <div>
+                        <p class="padron-contador" style="margin:0; font-size:0.85rem; color:var(--color-text-muted);">
+                          6 departamentos · 6 con usuarios asignados
+                        </p>
+                      </div>
+                      <div class="cabecera-acciones">
+                        <button type="button" style="min-height: 32px; padding: 0 0.75rem; font-size:0.75rem; border-radius: 4px; margin-right:0.3rem;">Importar CSV</button>
+                        <button type="button" style="min-height: 32px; padding: 0 0.75rem; font-size:0.75rem; border-radius: 4px;">+ Nuevo departamento</button>
+                      </div>
+                    </header>
+
+                    <div class="padron-filtros" style="display:flex; gap:0.5rem; margin-bottom:1rem; align-items:center;">
+                      <input type="search" placeholder="Buscar unidad o usuario…" value="" disabled style="min-height:34px; padding: 0 0.5rem; font-size:0.85rem; flex:1;" />
+                      <select disabled style="min-height:34px; padding:0 0.5rem; font-size:0.85rem;">
+                        <option>Estado: Todos</option>
+                      </select>
+                    </div>
+
+                    <table class="tabla-padron">
+                      <thead>
+                        <tr>
+                          <th class="col-unidad">Unidad</th>
+                          <th>Propietario / Inquilino</th>
+                          <th>Clase Prorrateo</th>
+                          <th>Coeficiente</th>
+                        </tr>
+                      </thead>
+                      <tbody id="departments-table-body">
+                        <tr>
+                          <td class="col-unidad"><strong>1A</strong></td>
+                          <td>Gómez, Carlos</td>
+                          <td>Clase A</td>
+                          <td>
+                            <input type="number" value="15.00" step="1" min="0" max="100" style="width: 70px; padding: 0.15rem 0.4rem; min-height:28px; border:1px solid var(--color-border);" onchange="updateCoefficient(1, this.value)"> %
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="col-unidad"><strong>1B</strong></td>
+                          <td>Martínez, Laura</td>
+                          <td>Clase A</td>
+                          <td>
+                            <input type="number" value="15.00" step="1" min="0" max="100" style="width: 70px; padding: 0.15rem 0.4rem; min-height:28px; border:1px solid var(--color-border);" onchange="updateCoefficient(2, this.value)"> %
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="col-unidad"><strong>2A</strong></td>
+                          <td>Pérez, Daniel</td>
+                          <td>Clase A</td>
+                          <td>
+                            <input type="number" value="20.00" step="1" min="0" max="100" style="width: 70px; padding: 0.15rem 0.4rem; min-height:28px; border:1px solid var(--color-border);" onchange="updateCoefficient(3, this.value)"> %
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="col-unidad"><strong>2B</strong></td>
+                          <td>López, Roberto</td>
+                          <td>Clase A</td>
+                          <td>
+                            <input type="number" value="20.00" step="1" min="0" max="100" style="width: 70px; padding: 0.15rem 0.4rem; min-height:28px; border:1px solid var(--color-border);" onchange="updateCoefficient(4, this.value)"> %
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="col-unidad"><strong>3A</strong></td>
+                          <td>Rodríguez, Elena</td>
+                          <td>Clase A</td>
+                          <td>
+                            <input type="number" value="15.00" step="1" min="0" max="100" style="width: 70px; padding: 0.15rem 0.4rem; min-height:28px; border:1px solid var(--color-border);" onchange="updateCoefficient(5, this.value)"> %
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="col-unidad"><strong>3B</strong></td>
+                          <td>Sánchez, Juan</td>
+                          <td>Clase A</td>
+                          <td>
+                            <input type="number" value="15.00" step="1" min="0" max="100" style="width: 70px; padding: 0.15rem 0.4rem; min-height:28px; border:1px solid var(--color-border);" onchange="updateCoefficient(6, this.value)"> %
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    
+                    <div style="display:flex; justify-content:space-between; margin-top:0.75rem; font-size:0.8rem; font-weight:600;">
+                      <span>Suma Total de Coeficientes:</span>
+                      <span id="coef-total-display" style="color: var(--color-success);">100.00%</span>
+                    </div>
+                  </section>
+                </main>
+              </div>
+
+              <!-- PANTALLA: GASTOS (PASO 2) -->
+              <div class="sim-screen" id="screen-gastos">
+                <main class="pantalla">
+                  <header class="cabecera-pantalla">
+                    <h2>Gastos</h2>
+                  </header>
+                  
+                  <div class="tabs-panel" style="display:flex; gap:0.5rem; border-bottom:1px solid var(--color-border); padding-bottom:0.5rem; margin-bottom:1rem;">
+                    <button type="button" class="tab-btn active" style="background:var(--color-primary-soft); color:var(--color-primary); min-height:unset; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:600; border-radius:4px; border:none;">Del mes</button>
+                    <button type="button" class="tab-btn" style="background:transparent; color:var(--color-text-muted); min-height:unset; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:500; border-radius:4px; border:none;">Recurrentes</button>
+                  </div>
+
+                  <section class="barra-periodo" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                      <button type="button" style="min-height:30px; min-width:30px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:4px; border:1px solid var(--color-border-strong); background:transparent; color:var(--color-text);">‹</button>
+                      <input type="month" value="2026-07" disabled style="min-height:30px; font-size:0.85rem; padding: 0.15rem 0.45rem; width:120px; border:1px solid var(--color-border-strong);" />
+                      <button type="button" style="min-height:30px; min-width:30px; padding:0; display:flex; align-items:center; justify-content:center; border-radius:4px; border:1px solid var(--color-border-strong); background:transparent; color:var(--color-text);">›</button>
+                      <span class="badge badge--ok" style="font-size: 0.72rem; padding: 0.2rem 0.5rem;">Abierto</span>
+                    </div>
+                    <div class="cabecera-acciones">
+                      <button type="button" style="min-height:32px; padding: 0 0.75rem; font-size:0.75rem; border-radius:4px; margin-right:0.3rem;">Cargar recurrentes</button>
+                      <button type="button" style="min-height:32px; padding: 0 0.75rem; font-size:0.75rem; border-radius:4px;">+ Nuevo gasto</button>
+                    </div>
+                  </section>
+
+                  <div style="display:grid; grid-template-columns: 1.15fr 0.85fr; gap:1.25rem; align-items: flex-start;">
+                    
+                    <div style="display: flex; flex-direction: column; gap:0.75rem;">
+                      <ul class="lista-gastos" id="gastos-lista-cards" style="list-style:none; display:flex; flex-direction:column; gap:0.75rem; padding:0;">
+                        <li>
+                          <article class="tarjeta">
+                            <h3>Sueldos y cargas sociales · Sueldo Encargado (Julio)</h3>
+                            <p class="meta">$ 220.000 · Período: 2026-07 · pagó 05/07/2026</p>
+                            <p class="meta">Proveedor: Administración / Consorcio</p>
+                            <p class="meta">Clase: Clase A</p>
+                            <p class="meta">Caja: Caja Administración</p>
+                            <div class="tarjeta-acciones" style="margin-top:0.4rem;">
+                              <button type="button">Editar</button>
+                              <button type="button" class="boton-borrar">Eliminar</button>
+                            </div>
+                          </article>
+                        </li>
+                        <li>
+                          <article class="tarjeta">
+                            <h3>Abonos y servicios · Abono Ascensores S.A.</h3>
+                            <p class="meta">$ 40.000 · Período: 2026-07 · pagó 06/07/2026</p>
+                            <p class="meta">Proveedor: Ascensores Libertad S.A.</p>
+                            <p class="meta">Clase: Clase A</p>
+                            <p class="meta">Caja: Caja Administración</p>
+                            <div class="tarjeta-acciones" style="margin-top:0.4rem;">
+                              <button type="button">Editar</button>
+                              <button type="button" class="boton-borrar">Eliminar</button>
+                            </div>
+                          </article>
+                        </li>
+                        <li>
+                          <article class="tarjeta">
+                            <h3>Seguros · Seguro Obligatorio La Caja</h3>
+                            <p class="meta">$ 20.000 · Período: 2026-07 · pagó 06/07/2026</p>
+                            <p class="meta">Proveedor: La Caja Seguros S.A.</p>
+                            <p class="meta">Clase: Clase A</p>
+                            <p class="meta">Caja: Caja Administración</p>
+                            <div class="tarjeta-acciones" style="margin-top:0.4rem;">
+                              <button type="button">Editar</button>
+                              <button type="button" class="boton-borrar">Eliminar</button>
+                            </div>
+                          </article>
+                        </li>
+                      </ul>
+
+                      <article class="tarjeta" style="display:flex; justify-content:space-between; font-weight:700; padding:0.75rem 1rem;">
+                        <span>Total a Liquidar:</span>
+                        <span id="gastos-total-display" style="color: var(--color-primary); font-size: 1rem;">$ 280.000,00</span>
+                      </article>
+                    </div>
+
+                    <article class="tarjeta">
+                      <h3>Nuevo Gasto</h3>
+                      <form id="form-nuevo-gasto" onsubmit="event.preventDefault(); addSimGasto();" style="display:flex; flex-direction:column; gap:0.65rem; margin-top:0.5rem;">
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Concepto / Detalle
+                          <input type="text" id="gasto-desc" placeholder="Ej: Reparación de Cañería" required style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem;" />
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Monto ($)
+                          <input type="number" id="gasto-monto" placeholder="0.00" min="1" step="0.01" required style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem;" />
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Rubro (Ley 941)
+                          <select id="gasto-rubro" style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem; border:1px solid var(--color-border);">
+                            <option value="mantenimiento_partes_comunes">Mantenimiento partes comunes</option>
+                            <option value="sueldos_y_cargas_sociales">Sueldos y cargas sociales</option>
+                            <option value="servicios_publicos">Servicios públicos</option>
+                            <option value="abonos_y_servicios">Abonos y servicios</option>
+                            <option value="seguros">Seguros</option>
+                            <option value="gastos_generales">Gastos generales</option>
+                          </select>
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Clase de Prorrateo
+                          <select id="gasto-clase" style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem; border:1px solid var(--color-border);">
+                            <option value="Clase A">Clase A (Comunes)</option>
+                            <option value="Clase B">Clase B (Extraordinarios)</option>
+                          </select>
+                        </label>
+                        <button type="submit" style="width: 100%; margin-top: 0.5rem; min-height:38px;">
+                          Agregar Gasto
+                        </button>
+                      </form>
+                    </article>
+                  </div>
+                </main>
+              </div>
+
+              <!-- PANTALLA: CIERRE DE PERÍODO (PASO 3) -->
+              <div class="sim-screen" id="screen-cierre">
+                <main class="pantalla">
+                  <header class="cabecera-pantalla">
+                    <h2>Cierre de período</h2>
+                  </header>
+                  
+                  <label style="font-weight:600; display:block; margin-bottom:1rem;">
+                    Período: <input type="month" value="2026-07" disabled style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem; width:150px; margin-left:0.5rem; border:1px solid var(--color-border);" />
+                  </label>
+
+                  <div id="cierre-action-card">
+                    <article class="tarjeta">
+                      <h3>Estado de 2026-07</h3>
+                      <ul class="lista-validaciones" style="list-style:none; margin: 0.75rem 0 1rem; display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem; padding:0;">
+                        <li style="color:var(--color-success);">✓ Sin observaciones bloqueantes.</li>
+                        <li style="color:var(--color-text-muted);">✓ Coeficiente de copropietarios cargado (100.00%).</li>
+                        <li style="color:var(--color-text-muted);">✓ Todos los gastos cargados para el período.</li>
+                      </ul>
+                      <button type="button" id="btn-ejecutar-cierre" onclick="executeSimCierre()" style="width:100%; min-height:42px;">
+                        Generar Liquidación Mensual
+                      </button>
+                    </article>
+                  </div>
+
+                  <!-- Resultados de la Liquidación (Oculto inicialmente) -->
+                  <div id="liquidacion-resultados-card" style="display:none; margin-top:1.25rem;">
+                    <article class="tarjeta">
+                      <h3>Vista previa de cierre — 2026-07</h3>
+                      <div style="font-size:0.88rem; color:var(--color-text-muted); margin-bottom:1rem;" id="cierre-preview-summary">
+                        Total a expensar: <strong style="color:var(--color-primary);" id="cierre-total-liquidado">$ 280.000,00</strong> · Boletas: 6
+                      </div>
+                      
+                      <table class="tabla-padron">
+                        <thead>
+                          <tr>
+                            <th class="col-unidad">UF</th>
+                            <th>Copropietario</th>
+                            <th>Coeficiente</th>
+                            <th>Total Expensa</th>
+                          </tr>
+                        </thead>
+                        <tbody id="liquidacion-table-body">
+                          <!-- Generado por JS -->
+                        </tbody>
+                      </table>
+                      
+                      <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1.25rem;">
+                        <button type="button" class="boton-secundario" onclick="resetSimCierre()" style="min-height:38px; display:inline-flex;">← Volver</button>
+                        <button type="button" onclick="confirmSimCierre()" style="min-height:38px; display:inline-flex;">Confirmar cierre del mes</button>
+                      </div>
+                    </article>
+                  </div>
+                </main>
+              </div>
+
+              <!-- PANTALLA: CUENTA CORRIENTE (PASO 4) -->
+              <div class="sim-screen" id="screen-cuenta">
+                <main class="pantalla">
+                  <p style="margin-bottom: 0.5rem;">
+                    <a class="breadcrumb-atras" style="color:var(--color-primary); font-size:0.85rem; text-decoration:none; font-weight:600; cursor:pointer;">
+                      ← Volver a cuentas corrientes
+                    </a>
+                  </p>
+                  <header class="pantalla-encabezado" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div>
+                      <h2 style="margin-bottom: 0;">Cuenta corriente — UF 1A</h2>
+                      <p class="meta" style="margin: 0; font-size:0.8rem; color:var(--color-text-muted);">Piso 1 - Gómez, Carlos</p>
+                    </div>
+                    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                      <button type="button" style="min-height:32px; padding:0 0.75rem; font-size:0.75rem; border-radius:4px; background:transparent; border:1px solid var(--color-border-strong); color:var(--color-text);">+ Nota de crédito</button>
+                      <button type="button" style="min-height:32px; padding:0 0.75rem; font-size:0.75rem; border-radius:4px; background:transparent; border:1px solid var(--color-border-strong); color:var(--color-text);">+ Nota de débito</button>
+                    </div>
+                  </header>
+
+                  <div style="display:grid; grid-template-columns: 1.15fr 0.85fr; gap:1.25rem; align-items: flex-start;">
+                    
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                      <article class="tarjeta">
+                        <p style="font-size: 1.3rem; margin: 0; color: var(--color-danger);" id="fifo-saldo-wrapper">
+                          <strong id="fifo-saldo-label">Saldo: $ 53.000,00</strong>
+                        </p>
+                      </article>
+
+                      <section>
+                        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Movimientos</h3>
+                        <table class="tabla-movimientos">
+                          <thead>
+                            <tr>
+                              <th>Fecha</th>
+                              <th>Tipo</th>
+                              <th>Descripción</th>
+                              <th>Monto</th>
+                            </tr>
+                          </thead>
+                          <tbody id="fifo-table-movimientos">
+                            <tr>
+                              <td>05/01/2026</td>
+                              <td>Expensa emitida</td>
+                              <td>Expensa ordinaria Enero 2026</td>
+                              <td style="color: var(--color-danger); font-weight:600;">+ $ 15.000,00</td>
+                            </tr>
+                            <tr>
+                              <td>05/02/2026</td>
+                              <td>Expensa emitida</td>
+                              <td>Expensa ordinaria Febrero 2026</td>
+                              <td style="color: var(--color-danger); font-weight:600;">+ $ 20.000,00</td>
+                            </tr>
+                            <tr>
+                              <td>05/03/2026</td>
+                              <td>Expensa emitida</td>
+                              <td>Expensa ordinaria Marzo 2026</td>
+                              <td style="color: var(--color-danger); font-weight:600;">+ $ 18.000,00</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </section>
+
+                      <section>
+                        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Cuenta Corriente Individual</h3>
+                        <table class="tabla-padron">
+                          <thead>
+                            <tr>
+                              <th>Fecha/Período</th>
+                              <th>Monto</th>
+                              <th>Abonado</th>
+                              <th>Saldo Pendiente</th>
+                              <th>Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr class="fifo-debt-row" id="fifo-row-1">
+                              <td><strong>Expensa 01/2026</strong> (Enero)</td>
+                              <td>$ 15.000,00</td>
+                              <td id="fifo-row-1-paid">$ 0,00</td>
+                              <td id="fifo-row-1-pending" style="font-weight:600;">$ 15.000,00</td>
+                              <td><span class="badge badge--alerta" id="fifo-row-1-badge">Vencida</span></td>
+                            </tr>
+                            <tr class="fifo-debt-row" id="fifo-row-2">
+                              <td><strong>Expensa 02/2026</strong> (Febrero)</td>
+                              <td>$ 20.000,00</td>
+                              <td id="fifo-row-2-paid">$ 0,00</td>
+                              <td id="fifo-row-2-pending" style="font-weight:600;">$ 20.000,00</td>
+                              <td><span class="badge badge--alerta" id="fifo-row-2-badge">Vencida</span></td>
+                            </tr>
+                            <tr class="fifo-debt-row" id="fifo-row-3">
+                              <td><strong>Expensa 03/2026</strong> (Marzo)</td>
+                              <td>$ 18.000,00</td>
+                              <td id="fifo-row-3-paid">$ 0,00</td>
+                              <td id="fifo-row-3-pending" style="font-weight:600;">$ 18.000,00</td>
+                              <td><span class="badge badge--alerta" id="fifo-row-3-badge">Vencida</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </section>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                      <article class="tarjeta">
+                        <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.5rem;">Registrar Cobro</h3>
+                        <div style="display:flex; flex-direction:column; gap:0.65rem;">
+                          <label style="font-size:0.78rem; font-weight:600; color:var(--color-text-muted);">Seleccionar Monto de Pago Rápido</label>
+                          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem;">
+                            <button type="button" onclick="setFifoPayment(15000)">$ 15.000</button>
+                            <button type="button" onclick="setFifoPayment(30000)">$ 30.000</button>
+                            <button type="button" onclick="setFifoPayment(35000)">$ 35.000</button>
+                            <button type="button" onclick="setFifoPayment(53000)">$ 53.000</button>
+                          </div>
+                          
+                          <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600; margin-top:0.4rem;">
+                            Monto a Imputar ($)
+                            <input type="number" id="fifo-payment-input" class="sim-input" value="30000" min="1" max="100000" style="min-height:36px; padding:0.35rem 0.6rem; border: 1px solid var(--color-border);" />
+                          </label>
+                          
+                          <button type="button" onclick="simulateFifoAllocation()" style="width:100%; min-height: 38px; margin-top:0.4rem;">
+                            Procesar Pago en Cuenta Corriente
+                          </button>
+                        </div>
+                      </article>
+
+                      <article class="tarjeta" style="min-height: 150px; display:flex; flex-direction:column;">
+                        <h3 style="font-size:0.9rem; font-weight:700; margin-bottom:0.4rem;">Log de Imputación de Pagos</h3>
+                        <div id="fifo-log-panel" style="font-size:0.72rem; line-height: 1.35; color: var(--color-text-muted); overflow-y:auto; flex: 1;">
+                          <span style="font-style:italic;">Esperando ingreso de pago para simular imputación contable...</span>
+                        </div>
+                      </article>
+                    </div>
+                    
+                  </div>
+                </main>
+              </div>
+
+              <!-- PANTALLA: AMENITIES / RESERVAS (PASO 5) -->
+              <div class="sim-screen" id="screen-reservas">
+                <main class="pantalla">
+                  <header class="cabecera-pantalla">
+                    <h2>Reservas</h2>
+                  </header>
+
+                  <section class="filtros" style="margin-bottom:1rem;">
+                    <label style="font-weight:600;">
+                      Amenity:{" "}
+                      <select disabled style="min-height:34px; font-size:0.85rem; padding:0 0.5rem; margin-left:0.5rem; border:1px solid var(--color-border);">
+                        <option>SUM (Salón de Usos Múltiples)</option>
+                      </select>
+                    </label>
+                  </section>
+
+                  <div style="display:grid; grid-template-columns: 1.15fr 0.85fr; gap:1.25rem; align-items: flex-start;">
+                    
+                    <div style="display:flex; flex-direction:column; gap:1rem;">
+                      <article class="tarjeta">
+                        <h3>Amenities Habilitados</h3>
+                        <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-top: 0.5rem;">
+                          <div style="border:1px solid var(--color-border); padding: 0.6rem; border-radius: var(--radius-sm); background: var(--color-surface); display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                              <div style="font-weight:600; font-size:0.8rem;">SUM</div>
+                              <span style="font-size:0.68rem; color: var(--color-text-muted);">Capacidad: 30 pers.</span>
+                            </div>
+                            <span class="badge badge--ok" style="font-size:0.65rem;">Habilitado</span>
+                          </div>
+
+                          <div style="border:1px solid var(--color-border); padding: 0.6rem; border-radius: var(--radius-sm); background: var(--color-surface); display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                              <div style="font-weight:600; font-size:0.8rem;">Parrilla y Terraza</div>
+                              <span style="font-size:0.68rem; color: var(--color-text-muted);">Capacidad: 10 pers.</span>
+                            </div>
+                            <span class="badge badge--ok" style="font-size:0.65rem;">Habilitado</span>
+                          </div>
+                        </div>
+                      </article>
+
+                      <section>
+                        <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Reservas Aprobadas</h3>
+                        <table class="tabla-padron">
+                          <thead>
+                            <tr>
+                              <th>Fecha</th>
+                              <th>Amenity</th>
+                              <th>UF</th>
+                              <th>Horario</th>
+                              <th>Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody id="reservas-table-body">
+                            <tr>
+                              <td>08/07/2026</td>
+                              <td>Parrilla y Terraza</td>
+                              <td>UF 1B</td>
+                              <td>20:00 - 23:30</td>
+                              <td><span class="badge badge--ok">Aprobado</span></td>
+                            </tr>
+                            <tr>
+                              <td>09/07/2026</td>
+                              <td>SUM (Salón de Usos Múltiples)</td>
+                              <td>UF 3A</td>
+                              <td>12:00 - 18:00</td>
+                              <td><span class="badge badge--ok">Aprobado</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </section>
+                    </div>
+
+                    <article class="tarjeta">
+                      <h3>Nueva reserva</h3>
+                      <form id="form-reserva-mock" onsubmit="event.preventDefault(); addSimReserva();" style="display:flex; flex-direction:column; gap:0.65rem; margin-top:0.5rem;">
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Fecha
+                          <input type="date" value="2026-07-11" disabled style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem; border:1px solid var(--color-border);" />
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Hora inicio
+                          <input type="time" value="19:00" disabled style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem; border:1px solid var(--color-border);" />
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.8rem; font-weight:600;">
+                          Hora fin
+                          <input type="time" value="00:00" disabled style="min-height:36px; padding:0.35rem 0.6rem; font-size:0.85rem; border:1px solid var(--color-border);" />
+                        </label>
+                        
+                        <button type="submit" id="btn-submit-reserva" style="width: 100%; margin-top: 0.5rem; min-height:40px;">
+                          Confirmar reserva (UF 2A)
+                        </button>
+                      </form>
+                    </article>
+                    
+                  </div>
+                </main>
+              </div>
+
+            </main>
+
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- LÓGICA JAVASCRIPT DEL SIMULADOR Y TUTORIAL -->
+  <script>
+    // ---------- Estado del Tutorial ----------
+    let currentStep = 0;
+    const totalSteps = 5;
+
+    const stepScreens = {
+      0: 'comunicados',
+      1: 'departamentos',
+      2: 'gastos',
+      3: 'cierre',
+      4: 'cuenta',
+      5: 'reservas'
+    };
+
+    // ---------- Estado del Simulador ----------
+    let departamentos = [
+      { id: 1, uf: "1A", owner: "Gómez, Carlos", coef: 15.00 },
+      { id: 2, uf: "1B", owner: "Martínez, Laura", coef: 15.00 },
+      { id: 3, uf: "2A", owner: "Pérez, Daniel", coef: 20.00 },
+      { id: 4, uf: "2B", owner: "López, Roberto", coef: 20.00 },
+      { id: 5, uf: "3A", owner: "Rodríguez, Elena", coef: 15.00 },
+      { id: 6, uf: "3B", owner: "Sánchez, Juan", coef: 15.00 }
+    ];
+
+    let gastos = [
+      { desc: "Sueldo Encargado (Julio)", rubro: "sueldos_y_cargas_sociales", rubroLabel: "Sueldos y cargas sociales", clase: "Clase A", monto: 220000, proveedor: "Administración / Consorcio", pago: "Transferencia" },
+      { desc: "Abono Ascensores S.A.", rubro: "abonos_y_servicios", rubroLabel: "Abonos y servicios", clase: "Clase A", monto: 40000, proveedor: "Ascensores Libertad S.A.", pago: "Cheque" },
+      { desc: "Seguro Obligatorio La Caja", rubro: "seguros", rubroLabel: "Seguros", clase: "Clase A", monto: 20000, proveedor: "La Caja Seguros S.A.", pago: "Débito automático" }
+    ];
+
+    // Datos iniciales de Cuenta Corriente (Fiel a la base de datos)
+    let initialMovimientos = [
+      { fecha: "05/01/2026", tipo: "expensa_emitida", tipoLabel: "Expensa emitida", desc: "Expensa ordinaria Enero 2026", monto: 15000, signo: "+" },
+      { fecha: "05/02/2026", tipo: "expensa_emitida", tipoLabel: "Expensa emitida", desc: "Expensa ordinaria Febrero 2026", monto: 20000, signo: "+" },
+      { fecha: "05/03/2026", tipo: "expensa_emitida", tipoLabel: "Expensa emitida", desc: "Expensa ordinaria Marzo 2026", monto: 18000, signo: "+" }
+    ];
+
+    let originalDebts = [
+      { id: 1, period: "Expensa 01/2026 (Enero)", amount: 15000, paid: 0 },
+      { id: 2, period: "Expensa 02/2026 (Febrero)", amount: 20000, paid: 0 },
+      { id: 3, period: "Expensa 03/2026 (Marzo)", amount: 18000, paid: 0 }
+    ];
+
+    // Helper Formato Moneda ARS
+    function formatMoney(amount) {
+      return Number(amount).toLocaleString("es-AR", {
+        style: "currency",
+        currency: "ARS",
+        maximumFractionDigits: 0
+      });
+    }
+
+    // ---------- Lógica de Navegación de Pasos ----------
+    function navigateStep(direction) {
+      // Ocultar paso actual
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      
+      currentStep += direction;
+      
+      // Mostrar nuevo paso
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      
+      // Actualizar progreso
+      const progressPercent = (currentStep / totalSteps) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent || 20}%`;
+      document.getElementById('progressText').innerText = `Paso ${currentStep} de 5 · ${getStepLabel(currentStep)}`;
+
+      // Habilitar/Deshabilitar botones
+      document.getElementById('btnPrev').disabled = currentStep === 0;
+      
+      const btnNext = document.getElementById('btnNext');
+      if (currentStep === totalSteps) {
+        btnNext.innerHTML = 'Finalizar Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      } else {
+        btnNext.innerHTML = 'Siguiente <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+      }
+
+      if (currentStep > totalSteps) {
+        alert('¡Gracias por ver la demo interactiva de Gestor Consorcios! Ha completado todos los pasos explicativos.');
+        currentStep = totalSteps;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        return;
+      }
+
+      // Cambiar automáticamente la pantalla del simulador correspondiente al paso
+      switchSimScreen(stepScreens[currentStep]);
+    }
+
+    function getStepLabel(step) {
+      switch(step) {
+        case 0: return "Introducción";
+        case 1: return "Departamentos y Coeficientes";
+        case 2: return "Gastos del Consorcio";
+        case 3: return "Cierre de Período";
+        case 4: return "Cuenta Corriente";
+        case 5: return "Amenities y Comunicación";
+        default: return "";
+      }
+    }
+
+    // ---------- Lógica del Simulador (Acordeón y Pantallas) ----------
+    
+    // Toggles de grupos del sidebar
+    function toggleSidebarSection(btn) {
+      const section = btn.closest('.sidebar-section');
+      const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', !isExpanded);
+      section.classList.toggle('abierto');
+    }
+
+    // Cambiar pantallas del simulador
+    function switchSimScreen(screenName) {
+      // Ocultar todas las pantallas
+      const screens = document.querySelectorAll('.sim-screen');
+      screens.forEach(s => s.classList.remove('active'));
+
+      // Desmarcar todos los links de la barra lateral
+      const sidebarLinks = document.querySelectorAll('.sidebar-link');
+      sidebarLinks.forEach(link => link.classList.remove('activo'));
+
+      // Desmarcar todos los títulos de sección del sidebar
+      const sidebarTitles = document.querySelectorAll('.sidebar-section-titulo');
+      sidebarTitles.forEach(title => title.classList.remove('activo'));
+
+      // Mostrar pantalla correspondiente
+      const targetScreen = document.getElementById(`screen-${screenName}`);
+      if (targetScreen) targetScreen.classList.add('active');
+
+      // Marcar link correspondiente
+      const activeLink = document.getElementById(`nav-${screenName === 'comunicados' ? 'comunicados' : screenName}`);
+      if (activeLink) {
+        activeLink.classList.add('activo');
+        
+        // Auto-abrir la sección del sidebar correspondiente y marcarla activa
+        const section = activeLink.closest('.sidebar-section');
+        if (section) {
+          section.classList.add('abierto');
+          const btn = section.querySelector('.sidebar-section-titulo');
+          if (btn) {
+            btn.setAttribute('aria-expanded', 'true');
+            btn.classList.add('activo');
+          }
+        }
+      }
+    }
+
+    // Actualizar Coeficiente de Departamento (Paso 1)
+    function updateCoefficient(id, value) {
+      const numValue = parseFloat(value) || 0;
+      departamentos.find(d => d.id === id).coef = numValue;
+
+      // Calcular total
+      const total = departamentos.reduce((acc, d) => acc + d.coef, 0);
+      const displayTotal = document.getElementById('coef-total-display');
+      displayTotal.innerText = `${total.toFixed(2)}%`;
+
+      if (Math.abs(total - 100) < 0.01) {
+        displayTotal.style.color = 'var(--color-success)';
+      } else {
+        displayTotal.style.color = 'var(--color-danger)';
+      }
+    }
+
+    // Agregar Gasto Ficticio (Paso 2)
+    function addSimGasto() {
+      const desc = document.getElementById('gasto-desc').value;
+      const monto = parseFloat(document.getElementById('gasto-monto').value) || 0;
+      const clase = document.getElementById('gasto-clase').value;
+      const rubroSelect = document.getElementById('gasto-rubro');
+      const rubroVal = rubroSelect.value;
+      const rubroText = rubroSelect.options[rubroSelect.selectedIndex].text;
+
+      if (!desc || monto <= 0) return;
+
+      gastos.push({ 
+        desc, 
+        rubro: rubroVal, 
+        rubroLabel: rubroText, 
+        clase, 
+        monto, 
+        proveedor: "Proveedor Simulado S.A.", 
+        pago: "Efectivo" 
+      });
+
+      // Actualizar lista en pantalla (como tarjetas reales)
+      const listCards = document.getElementById('gastos-lista-cards');
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <article class="tarjeta" style="animation: fadeIn 0.4s ease;">
+          <h3>${rubroText} · ${desc}</h3>
+          <p class="meta">${formatMoney(monto)} · Período: 2026-07 · pagó 05/07/2026</p>
+          <p class="meta">Proveedor: Proveedor Simulado S.A.</p>
+          <p class="meta">Clase: ${clase}</p>
+          <p class="meta">Caja: Caja Administración</p>
+          <div class="tarjeta-acciones" style="margin-top:0.4rem;">
+            <button type="button">Editar</button>
+            <button type="button" class="boton-borrar">Eliminar</button>
+          </div>
+        </article>
+      `;
+      listCards.appendChild(li);
+
+      // Recalcular total
+      const total = gastos.reduce((acc, g) => acc + g.monto, 0);
+      document.getElementById('gastos-total-display').innerText = formatMoney(total);
+      document.getElementById('cierre-total-gastos').innerText = formatMoney(total);
+
+      // Reset formulario
+      document.getElementById('form-nuevo-gasto').reset();
+
+      alert(`Gasto "${desc}" por ${formatMoney(monto)} agregado con éxito.`);
+    }
+
+    // Ejecutar Cierre de Período (Paso 3)
+    function executeSimCierre() {
+      const btn = document.getElementById('btn-ejecutar-cierre');
+      btn.innerText = "Procesando Cierre de Período...";
+      btn.disabled = true;
+
+      // Animación de cierre
+      setTimeout(() => {
+        const totalGastos = gastos.reduce((acc, g) => acc + g.monto, 0);
+        const tableBody = document.getElementById('liquidacion-table-body');
+        tableBody.innerHTML = ''; // Vaciar tabla
+
+        departamentos.forEach(d => {
+          const share = totalGastos * (d.coef / 100);
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="col-unidad"><strong>${d.uf}</strong></td>
+            <td>${d.owner}</td>
+            <td>${d.coef.toFixed(2)}%</td>
+            <td><strong>${formatMoney(share)}</strong></td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+        document.getElementById('cierre-total-liquidado').innerText = formatMoney(totalGastos);
+        document.getElementById('cierre-action-card').style.display = 'none';
+        document.getElementById('liquidacion-resultados-card').style.display = 'block';
+
+        alert('El período de Julio 2026 se ha cerrado de forma simulada. Las expensas fueron prorrateadas a las 6 unidades funcionales.');
+      }, 1200);
+    }
+
+    function resetSimCierre() {
+      document.getElementById('cierre-action-card').style.display = 'block';
+      document.getElementById('liquidacion-resultados-card').style.display = 'none';
+      const btn = document.getElementById('btn-ejecutar-cierre');
+      btn.innerText = "Generar Liquidación Mensual";
+      btn.disabled = false;
+    }
+
+    function confirmSimCierre() {
+      alert("Cierre de período confirmado e irrevocable. Se han emitido los comprobantes oficiales.");
+    }
+
+    // Establecer monto de pago rápido (Paso 4)
+    function setFifoPayment(amount) {
+      document.getElementById('fifo-payment-input').value = amount;
+    }
+
+    // Simular imputación de dinero (Paso 4)
+    function simulateFifoAllocation() {
+      let paymentAmount = parseFloat(document.getElementById('fifo-payment-input').value) || 0;
+      if (paymentAmount <= 0) {
+        alert("Por favor, ingrese un monto de pago válido.");
+        return;
+      }
+
+      // Reiniciar visuales de filas
+      document.querySelectorAll('.fifo-debt-row').forEach(row => {
+        row.className = 'fifo-debt-row';
+      });
+
+      const logPanel = document.getElementById('fifo-log-panel');
+      logPanel.innerHTML = `<strong>Iniciando imputación de pagos por ${formatMoney(paymentAmount)}...</strong><br><br>`;
+
+      // Hacer copia profunda de las deudas del consorcio
+      let debts = JSON.parse(JSON.stringify(originalDebts));
+      let currentPayment = paymentAmount;
+
+      // Lógica de procesamiento en pasos (animación visual diferida)
+      function processDebtStep(index) {
+        if (index >= debts.length) {
+          // Finalización
+          setTimeout(() => {
+            logPanel.innerHTML += `<div class="fifo-waterfall-step" style="border-left-color: var(--color-success); opacity: 1;">
+              <strong>Procesamiento Finalizado.</strong> Pago distribuido por completo. Saldo restante a favor del propietario: ${formatMoney(currentPayment)}.
+            </div>`;
+            
+            // Recalcular saldo total deudor / a favor
+            const pendingTotal = debts.reduce((acc, d) => acc + (d.amount - d.paid), 0) - currentPayment;
+            
+            const labelEl = document.getElementById('fifo-saldo-label');
+            
+            if (pendingTotal > 0) {
+              labelEl.innerText = `Saldo: ${formatMoney(pendingTotal)}`;
+              labelEl.closest('p').style.color = 'var(--color-danger)';
+            } else if (pendingTotal < 0) {
+              labelEl.innerText = `Saldo a Favor: ${formatMoney(Math.abs(pendingTotal))}`;
+              labelEl.closest('p').style.color = 'var(--color-success)';
+            } else {
+              labelEl.innerText = `Saldo al Día`;
+              labelEl.closest('p').style.color = 'var(--color-text)';
+            }
+
+            // Añadir pago a la tabla de movimientos contables del simulador
+            const movsBody = document.getElementById('fifo-table-movimientos');
+            const row = document.createElement('tr');
+            row.style.animation = 'fadeIn 0.5s ease';
+            row.innerHTML = `
+              <td>04/07/2026</td>
+              <td>Pago</td>
+              <td>Cobro de expensas - Pago recibido</td>
+              <td style="color: var(--color-success); font-weight:600;">- ${formatMoney(paymentAmount)}</td>
+            `;
+            movsBody.appendChild(row);
+
+          }, 600 * index);
+          return;
+        }
+
+        const debt = debts[index];
+        const rowId = `fifo-row-${debt.id}`;
+        const rowEl = document.getElementById(rowId);
+        
+        setTimeout(() => {
+          // Destacar fila que se está procesando
+          rowEl.className = 'fifo-debt-row applying-payment';
+
+          setTimeout(() => {
+            const pendingAmount = debt.amount - debt.paid;
+            const allocated = Math.min(currentPayment, pendingAmount);
+            
+            debt.paid += allocated;
+            currentPayment -= allocated;
+
+            // Actualizar campos de la tabla
+            document.getElementById(`${rowId}-paid`).innerText = formatMoney(debt.paid);
+            document.getElementById(`${rowId}-pending`).innerText = formatMoney(debt.amount - debt.paid);
+
+            const badge = document.getElementById(`${rowId}-badge`);
+
+            // Agregar registro al log
+            let logMsg = `Aplicando a <strong>${debt.period}</strong> (Deuda: ${formatMoney(pendingAmount)}) -> `;
+
+            if (debt.paid === debt.amount) {
+              rowEl.className = 'fifo-debt-row paid-now';
+              badge.className = 'badge badge--ok';
+              badge.innerText = 'Confirmada';
+              logMsg += `Se liquidó el total (${formatMoney(allocated)}).`;
+            } else if (debt.paid > 0) {
+              badge.className = 'badge badge--warning';
+              badge.innerText = 'Parcial';
+              logMsg += `Se cubrió un pago parcial de ${formatMoney(allocated)}. Saldo restante: ${formatMoney(debt.amount - debt.paid)}.`;
+            } else {
+              rowEl.className = 'fifo-debt-row';
+              badge.className = 'badge badge--alerta';
+              badge.innerText = 'Vencida';
+              logMsg += `No queda saldo de pago disponible para esta expensa.`;
+            }
+
+            const stepLog = document.createElement('div');
+            stepLog.className = 'fifo-waterfall-step';
+            stepLog.style.animationDelay = '0s';
+            stepLog.style.opacity = '1';
+            stepLog.innerHTML = logMsg;
+            logPanel.appendChild(stepLog);
+
+            // Siguiente período
+            processDebtStep(index + 1);
+
+          }, 800);
+
+        }, 600 * index);
+      }
+
+      // Ejecutar la simulación paso a paso
+      processDebtStep(0);
+    }
+
+    // Agregar Reserva Simulada (Paso 5)
+    function addSimReserva() {
+      const tableBody = document.getElementById('reservas-table-body');
+      
+      // Comprobar si ya existe para evitar duplicación en clics sucesivos
+      if (document.getElementById('reserva-simulada')) {
+        alert('La reserva ya ha sido registrada en el calendario del SUM.');
+        return;
+      }
+
+      const row = document.createElement('tr');
+      row.id = 'reserva-simulada';
+      row.innerHTML = `
+        <td>11/07/2026</td>
+        <td>SUM (Salón de Usos Múltiples)</td>
+        <td>UF 2A</td>
+        <td>19:00 - 00:00</td>
+        <td><span class="badge badge--ok" style="animation: fadeIn 0.5s ease;">Aprobado</span></td>
+      `;
+      tableBody.appendChild(row);
+
+      alert('Reserva para el SUM solicitada y aprobada de forma automatizada para la UF 2A (Pérez, Daniel) el Sábado 11 de Julio de 19:00 a 00:00 hs.');
+    }
+  </script>
+</body>
+</html>
